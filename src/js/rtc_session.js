@@ -1084,7 +1084,9 @@ export default class RtcSession {
         var mediaConstraints = {};
 
         if (self._enableAudio) {
-            var audioConstraints = {};
+            var audioConstraints = {
+                echoCancellationType: 'system'
+            };
             if (typeof self._echoCancellation !== 'undefined') {
                 audioConstraints.echoCancellation = !!self._echoCancellation;
             }
