@@ -20,14 +20,32 @@ module.exports = function(grunt) {
                     browserifyOptions: {
                         debug: true
                     },
-                    transform: [['babelify', { presets: ['env'] }]]
+                    transform: [
+                        [
+                            'babelify',
+                            {
+                                global: true,
+                                ignore: /\/node_modules\/(?!webrtc-adapter\/)/, // ignoring node_modules except webrtc-adapter
+                                presets: ['es2015']
+                            }
+                        ]
+                    ]
                 }
             },
             connectRtcGlobalObject: {
                 src: ['./src/js/connect-rtc.js'],
                 dest: './out/connect-rtc.js',
                 options: {
-                    transform: [['babelify', { presets: ['env'] }]]
+                    transform: [
+                        [
+                            'babelify',
+                            {
+                                global: true,
+                                ignore: /\/node_modules\/(?!webrtc-adapter\/)/, // ignoring node_modules except webrtc-adapter
+                                presets: ['es2015']
+                            }
+                        ]
+                    ]
                 }
             }
         },
