@@ -109,10 +109,11 @@ export function extractMediaStatsFromStats(timestamp, stats, streamType) {
 /**
 * Basic RTP statistics object, represents statistics of an audio or video stream.
 */
-class MediaRtpStats extends BaseStats {
-    constructor(params = {}, statsReportType, streamType) {
-        super(params, statsReportType, streamType);
+class MediaRtpStats {
+    constructor(paramsIn, statsReportType, streamType) {
+        var params = paramsIn || {};
 
+        this._timestamp         = params.timestamp || new Date().getTime();
         this._packetsLost       = when_defined(params.packetsLost);
         this._packetsCount      = when_defined(params.packetsCount);
         this._audioLevel        = when_defined(params.audioLevel);
@@ -125,6 +126,8 @@ class MediaRtpStats extends BaseStats {
         this._framesDecoded     = when_defined(params.framesDecoded);
         this._frameRateSent     = when_defined(params.frameRateSent);
         this._frameRateReceived = when_defined(params.frameRateReceived);
+        this._statsReportType   = statsReportType || params._statsReportType || "unknown";
+        this._streamType        = streamType || params.streamType || "unknown";
     }
 
     /** {number} number of packets sent to the channel */
@@ -185,42 +188,12 @@ class MediaRtpStats extends BaseStats {
     get frameRateReceived() {
         return this._frameRateReceived;
     }
-}
-
-/**
-* Basic BWEForVideo statistics object, represents statistics of an audio or video stream.
-*/
-class MediaBWEForVideoStats extends BaseStats {
-    constructor(params = {}, statsReportType, streamType) {
-        super(params, statsReportType, streamType);
-
-        this._encBitrate        = when_defined(params.encBitrate);
-        this._availReceiveBW    = when_defined(params.availReceiveBW);
-        this._availSendBW       = when_defined(params.availSendBW);
-        this._bucketDelay       = when_defined(params.bucketDelay);
-        this._retransmitBitrate = when_defined(params.retransmitBitrate);
-        this._targetEncBitrate  = when_defined(params.targetEncBitrate);
-        this._transmitBitrate   = when_defined(params.transmitBitrate);
+    /** {string} the type of the stats report */
+    get statsReportType() {
+        return this._statsReportType;
     }
-    get encBitrate() {
-        return this._encBitrate;
-    }
-    get availReceiveBW() {
-        return this._availReceiveBW;
-    }
-    get availSendBW() {
-        return this._availSendBW;
-    }
-    get bucketDelay() {
-        return this._bucketDelay;
-    }
-    get retransmitBitrate() {
-        return this._retransmitBitrate;
-    }
-    get targetEncBitrate() {
-        return this._targetEncBitrate;
-    }
-    get transmitBitrate() {
-        return this._transmitBitrate;
+    /** {string} the type of the stream */
+    get streamType() {
+        return this._streamType;
     }
 }
