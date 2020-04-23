@@ -1,11 +1,7 @@
 /**
  * Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
- *
- *   http://aws.amazon.com/asl/
- *
- * or in the "LICENSE" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -28,6 +24,35 @@ export const DEFAULT_ICE_TIMEOUT_MS = 8000;
  * Default gum timeout in milliseconds to be enforced during start of a call.
  */
 export const DEFAULT_GUM_TIMEOUT_MS = 10000;
+
+export const SOFTPHONE_ROUTE_KEY = "aws/softphone";
+
+export const INVITE_METHOD_NAME = "invite";
+export const ACCEPT_METHOD_NAME = "accept";
+export const BYE_METHOD_NAME = "bye";
+
+export const RTC_PEER_CONNECTION_CONFIG = {
+    iceTransportPolicy: 'relay',
+    rtcpMuxPolicy: 'require',
+    bundlePolicy: 'balanced',
+    sdpSemantics: 'plan-b'
+};
+
+export const RTC_PEER_CONNECTION_OPTIONAL_CONFIG = {
+    optional: [
+        {
+            googDscp: true
+        }
+    ]
+};
+
+export const DEFAULT_ICE_CANDIDATE_POOL_SIZE = 1;
+
+export const RTC_PEER_CONNECTION_IDLE_TIMEOUT_MS = 60*60*1000;
+
+export const NETWORK_CONNECTIVITY_CHECK_INTERVAL_MS = 250;
+
+export const CHROME_SUPPORTED_VERSION = 59;
 
 /**
  * RTC error names.
