@@ -7,122 +7,117 @@
 import { is_defined, when_defined } from './utils';
 
 export function extractMediaStatsFromStats(timestamp, stats, streamType) {
-    let extractedStats = null;
+    var extractedStats = null;
+    var reportType = null;
+    var packetsSent = null;
 
-    for (let key in stats) {
-        var statsReport = stats[key];
+    stats.forEach(statsReport => {
         if (statsReport) {
             if (statsReport.type === 'ssrc') {
-                //chrome, opera case. chrome reports stats for all streams, not just the stream passed in.
-                if (is_defined(statsReport.packetsSent) && statsReport.mediaType == 'audio' && streamType === 'audio_input') {
-                    extractedStats = new MediaRtpStats({
+                reportType = statsReport.type;
+                // Legacy report. Legacy report names stats with google specific names.
+                if (parseInt(statsReport.stat('packetsSent')) && statsReport.stat('mediaType') == 'audio' && streamType === 'audio_output') {
+                    extractedStats = {
                         timestamp:          timestamp,
-                        packetsCount:       statsReport.packetsSent,
-                        bytesSent:          statsReport.bytesSent,
-                        audioLevel:         when_defined(statsReport.audioInputLevel),
-                        packetsLost:        is_defined(statsReport.packetsLost) ? Math.max(0, statsReport.packetsLost) : 0,
-                        procMilliseconds:   is_defined(statsReport.googCurrentDelayMs),
-                        rttMilliseconds:    when_defined(statsReport.googRtt)
-                    }, statsReport.type, streamType);
+                        packetsCount:       parseInt(statsReport.stat('packetsSent')),
+                        bytesSent:          parseInt(statsReport.stat('bytesSent')),
+                        audioLevel:         when_defined(parseInt(statsReport.stat('audioInputLevel'))),
+                        packetsLost:        is_defined(statsReport.stat('packetsLost')) ? Math.max(0, statsReport.stat('packetsLost')) : 0,
+                        procMilliseconds:   when_defined(parseInt(statsReport.stat('googCurrentDelayMs'))),
+                        rttMilliseconds:    when_defined(parseInt(statsReport.stat('googRtt'))),
+                        jbMilliseconds:     when_defined(parseInt(statsReport.stat('googJitterReceived')))
+                    };
 
-                } else if (is_defined(statsReport.packetsReceived) && statsReport.mediaType == 'audio' && streamType === 'audio_output') {
-                    extractedStats = new MediaRtpStats({
+                } else if (parseInt(statsReport.stat('packetsReceived')) && statsReport.stat('mediaType') == 'audio' && streamType === 'audio_input') {
+                    extractedStats = {
                         timestamp:          timestamp,
-                        packetsCount:       statsReport.packetsReceived,
-                        bytesReceived:      statsReport.bytesReceived,
-                        audioLevel:         when_defined(statsReport.audioOutputLevel),
-                        packetsLost:        is_defined(statsReport.packetsLost) ? Math.max(0, statsReport.packetsLost) : 0,
-                        procMilliseconds:   is_defined(statsReport.googCurrentDelayMs),
-                        jbMilliseconds:     when_defined(statsReport.googJitterBufferMs)
-                    }, statsReport.type, streamType);
+                        packetsCount:       parseInt(statsReport.stat('packetsReceived')),
+                        bytesReceived:      parseInt(statsReport.stat('bytesReceived')),
+                        audioLevel:         when_defined(parseInt(statsReport.stat('audioOutputLevel'))),
+                        packetsLost:        is_defined(parseInt(statsReport.stat('packetsLost'))) ? Math.max(0, statsReport.stat('packetsLost')) : 0,
+                        procMilliseconds:   when_defined(parseInt(statsReport.stat('googCurrentDelayMs'))),
+                        jbMilliseconds:     when_defined(parseInt(statsReport.stat('googJitterReceived')))
+                    };
 
                 } else if (is_defined(statsReport.packetsSent) && statsReport.mediaType == 'video' && streamType === 'video_input') {
-                    extractedStats = new MediaRtpStats({
+                    extractedStats = {
                         timestamp:          timestamp,
-                        packetsCount:       statsReport.packetsSent,
-                        bytesSent:          statsReport.bytesSent,
-                        packetsLost:        is_defined(statsReport.packetsLost) ? Math.max(0, statsReport.packetsLost) : 0,
-                        rttMilliseconds:    when_defined(statsReport.googRtt),
-                        procMilliseconds:   is_defined(statsReport.googCurrentDelayMs),
-                        frameRateSent:      when_defined(statsReport.googFrameRateSent),
-                    }, statsReport.type, streamType);
+                        packetsCount:       parseInt(statsReport.stat('packetsSent')),
+                        bytesSent:          parseInt(statsReport.stat('bytesSent')),
+                        packetsLost:        is_defined(statsReport.stat('packetsLost')) ? Math.max(0, statsReport.stat('packetsLost')) : 0,
+                        rttMilliseconds:    when_defined(parseInt(statsReport.stat('googRtt'))),
+                        procMilliseconds:   when_defined(parseInt(statsReport.stat('googCurrentDelayMs'))),
+                        frameRateSent:      when_defined(parseFloat(statsReport.stat('googFrameRateSent')))
+                    };
 
                 } else if (typeof statsReport.packetsReceived !== 'undefined' && statsReport.mediaType == 'video' && streamType === 'video_output') {
-                    extractedStats = new MediaRtpStats({
+                    extractedStats = {
                         timestamp:          timestamp,
-                        packetsCount:       statsReport.packetsSent,
-                        bytesReceived:      statsReport.bytesReceived,
-                        packetsLost:        is_defined(statsReport.packetsLost) ? Math.max(0, statsReport.packetsLost) : 0,
-                        frameRateReceived:  when_defined(statsReport.googFrameRateReceived),
-                        procMilliseconds:   is_defined(statsReport.googCurrentDelayMs),
-                        jbMilliseconds:     when_defined(statsReport.googJitterBufferMs)
-                    }, statsReport.type, streamType);
+                        packetsCount:       parseInt(statsReport.stat('packetsSent')),
+                        bytesReceived:      parseInt(statsReport.stat('bytesReceived')),
+                        packetsLost:        is_defined(parseInt(statsReport.stat('packetsLost'))) ? Math.max(0, statsReport.stat('packetsLost')) : 0,
+                        frameRateReceived:  when_defined(parseFloat(statsReport.stat('statsReport.googFrameRateReceived'))),
+                        procMilliseconds:   when_defined(parseInt(statsReport.stat('googCurrentDelayMs'))),
+                        jbMilliseconds:     when_defined(parseInt(statsReport.stat('googJitterReceived')))
+                    };
 
                 }
-            } else if (statsReport.type === 'inboundrtp') {
-                // Firefox case. Firefox reports packetsLost parameter only in inboundrtp type, and doesn't report in outboundrtp type.
-                // So we only pull from inboundrtp. Firefox reports only stats for the stream passed in.
-                if (is_defined(statsReport.packetsLost) && is_defined(statsReport.packetsReceived)) {
-                    extractedStats = new MediaRtpStats({
-                        packetsLost:        statsReport.packetsLost,
-                        packetsCount:       statsReport.packetsReceived,
-                        audioLevel:         when_defined(statsReport.audioInputLevel),
-                        rttMilliseconds:    streamType === 'audio_output' || streamType === 'video_output' ? when_defined(statsReport.roundTripTime) : null,
-                        jbMilliseconds:     streamType === 'audio_output' || streamType === 'video_output' ? when_defined(statsReport.jitter, 0) * 1000 : null
-                    }, statsReport.type, streamType);
+            // Standardized report for input stream stats
+            } else if (statsReport.type === 'inbound-rtp' && !statsReport.isRemote && (streamType === 'audio_input' || streamType === 'video_input')) {
+                reportType = statsReport.type;
+                extractedStats = {
+                    timestamp:          timestamp,
+                    packetsLost:        statsReport.packetsLost,
+                    packetsCount:       statsReport.packetsReceived,
+                    jbMilliseconds:     when_defined(statsReport.jitter, 0) * 1000
+                };
+            // Standardized report for packets sent
+            } else if (statsReport.type === 'outbound-rtp' && !statsReport.isRemote && (streamType === 'audio_output' || streamType === 'video_output')) {
+                // outbound-rtp report can appear either before or after extractedStats object is created
+                if(extractedStats && !extractedStats.packetsCount) {
+                    extractedStats.packetsCount = statsReport.packetsSent;
+                } else {
+                    packetsSent = statsReport.packetsSent;
                 }
-            } else if (statsReport.type === 'VideoBwe') {
-                if (streamType === 'video_bandwidth') {
-                    extractedStats = new MediaBWEForVideoStats({
-                        timestamp:              timestamp,
-                        encBitrate:             statsReport.googActualEncBitrate,
-                        availReceiveBW:         statsReport.googAvailableReceiveBandwidth,
-                        availSendBW:            statsReport.googAvailableSendBandwidth,
-                        bucketDelay:            statsReport.googBucketDelay,
-                        retransmitBitrate:      statsReport.googRetransmitBitrate,
-                        targetEncBitrate:       statsReport.googTargetEncBitrate,
-                        transmitBitrate:        statsReport.googTransmitBitrate
-                    }, statsReport.type, streamType);
-                }
+            // Standardized report for remaining output stream stats
+            } else if (statsReport.type === 'remote-inbound-rtp' && (streamType === 'audio_output' || streamType === 'video_output')) {
+                reportType = statsReport.type;
+                extractedStats = {
+                    timestamp:          timestamp,
+                    packetsLost:        statsReport.packetsLost,
+                    packetsCount:       packetsSent,
+                    rttMilliseconds:    Number.isInteger(statsReport.roundTripTime) ? statsReport.roundTripTime : is_defined(statsReport.roundTripTime) ? statsReport.roundTripTime * 1000 : null,
+                    jbMilliseconds:     when_defined(statsReport.jitter, 0) * 1000
+                };
+            // Case for Firefox 65 and below for getting remaining output stream stats
+            } else if (statsReport.type === 'inbound-rtp' && statsReport.isRemote && (streamType === 'audio_output' || streamType === 'video_output')) {
+                reportType = statsReport.type;
+                extractedStats = {
+                    timestamp:          timestamp,
+                    packetsLost:        statsReport.packetsLost,
+                    packetsCount:       packetsSent,
+                    rttMilliseconds:    Number.isInteger(statsReport.roundTripTime) ? statsReport.roundTripTime : is_defined(statsReport.roundTripTime) ? statsReport.roundTripTime * 1000 : null,
+                    jbMilliseconds:     when_defined(statsReport.jitter, 0) * 1000
+                };
             }
         }
-    }
-    return extractedStats ? extractedStats : null;
-}
+    });
 
-/**
-* Basic statistics object, represents core properties of any statistic
-*/
-class BaseStats {
-    constructor(params = {}, statsReportType, streamType) {
-        this._timestamp         = params.timestamp || new Date().getTime();
-        this._statsReportType   = statsReportType || params._statsReportType || "unknown";
-        this._streamType        = streamType || params.streamType || "unknown";
-    }
-    /** Timestamp when stats are collected. */
-    get timestamp() {
-        return this._timestamp;
-    }
-    /** {string} the type of the stats report */
-    get statsReportType() {
-        return this._statsReportType;
-    }
-    /** {string} the type of the stream */
-    get streamType() {
-        return this._streamType;
-    }
+    return extractedStats ? new MediaRtpStats(extractedStats, reportType, streamType) : null;
 }
 
 /**
 * Basic RTP statistics object, represents statistics of an audio or video stream.
 */
-class MediaRtpStats extends BaseStats {
-    constructor(params = {}, statsReportType, streamType) {
-        super(params, statsReportType, streamType);
+class MediaRtpStats {
+    constructor(paramsIn, statsReportType, streamType) {
+        var params = paramsIn || {};
 
+        this._timestamp         = params.timestamp || new Date().getTime();
         this._packetsLost       = when_defined(params.packetsLost);
         this._packetsCount      = when_defined(params.packetsCount);
         this._audioLevel        = when_defined(params.audioLevel);
+        this._procMilliseconds  = when_defined(params.procMilliseconds);
         this._rttMilliseconds   = when_defined(params.rttMilliseconds);
         this._jbMilliseconds    = when_defined(params.jbMilliseconds);
         this._bytesSent         = when_defined(params.bytesSent);
@@ -131,6 +126,8 @@ class MediaRtpStats extends BaseStats {
         this._framesDecoded     = when_defined(params.framesDecoded);
         this._frameRateSent     = when_defined(params.frameRateSent);
         this._frameRateReceived = when_defined(params.frameRateReceived);
+        this._statsReportType   = statsReportType || params._statsReportType || "unknown";
+        this._streamType        = streamType || params.streamType || "unknown";
     }
 
     /** {number} number of packets sent to the channel */
@@ -151,11 +148,19 @@ class MediaRtpStats extends BaseStats {
     get audioLevel() {
         return this._audioLevel;
     }
+    /** Timestamp when stats are collected. */
+    get timestamp() {
+        return this._timestamp;
+    }
+    /** {number} Processing delay calculated by time to process packet header */
+    get procMilliseconds() {
+        return this._procMilliseconds
+    }
     /** {number} Round trip time calculated with RTCP reports */
     get rttMilliseconds() {
         return this._rttMilliseconds;
     }
-    /** {number} Browser/client side jitter buffer length */
+    /** {number} Statistical variance of RTP data packet inter-arrival time */
     get jbMilliseconds() {
         return this._jbMilliseconds;
     }
@@ -183,42 +188,12 @@ class MediaRtpStats extends BaseStats {
     get frameRateReceived() {
         return this._frameRateReceived;
     }
-}
-
-/**
-* Basic BWEForVideo statistics object, represents statistics of an audio or video stream.
-*/
-class MediaBWEForVideoStats extends BaseStats {
-    constructor(params = {}, statsReportType, streamType) {
-        super(params, statsReportType, streamType);
-
-        this._encBitrate        = when_defined(params.encBitrate);
-        this._availReceiveBW    = when_defined(params.availReceiveBW);
-        this._availSendBW       = when_defined(params.availSendBW);
-        this._bucketDelay       = when_defined(params.bucketDelay);
-        this._retransmitBitrate = when_defined(params.retransmitBitrate);
-        this._targetEncBitrate  = when_defined(params.targetEncBitrate);
-        this._transmitBitrate   = when_defined(params.transmitBitrate);
+    /** {string} the type of the stats report */
+    get statsReportType() {
+        return this._statsReportType;
     }
-    get encBitrate() {
-        return this._encBitrate;
-    }
-    get availReceiveBW() {
-        return this._availReceiveBW;
-    }
-    get availSendBW() {
-        return this._availSendBW;
-    }
-    get bucketDelay() {
-        return this._bucketDelay;
-    }
-    get retransmitBitrate() {
-        return this._retransmitBitrate;
-    }
-    get targetEncBitrate() {
-        return this._targetEncBitrate;
-    }
-    get transmitBitrate() {
-        return this._transmitBitrate;
+    /** {string} the type of the stream */
+    get streamType() {
+        return this._streamType;
     }
 }

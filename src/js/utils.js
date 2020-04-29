@@ -1,15 +1,11 @@
 /**
  * Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
- *
- *   http://aws.amazon.com/asl/
- *
- * or in the "LICENSE" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
-import { IllegalParameters } from './exceptions';
-import { splitSections, splitLines, parseRtpMap, getKind, parseRtpParameters, writeFmtp } from 'sdp';
+import {IllegalParameters} from './exceptions';
+import {getKind, parseRtpMap, parseRtpParameters, splitLines, splitSections, writeFmtp} from 'sdp';
 
 /**
  * All logging methods used by connect-rtc.
@@ -157,7 +153,7 @@ export function transformSdp(sdp, sdpOptions) {
                 
                 // append a=fmtp line immediately if current codec is OPUS (to explicitly specify OPUS parameters)
                 if (currentCodec.name.toUpperCase() === 'OPUS') { 
-                    currentCodec.parameters.usedtx = sdpOptions.enableOpusDtx ? 1 : 0;
+                    currentCodec.parameters.usedtx = sdpOptions.enableOpusDtx ? "1" : "0";
                     // generate fmtp line immediately after rtpmap line, and remove original fmtp line once we see it
                     return (line + "\r\n" + writeFmtp(currentCodec)).trim();
                 } else {
@@ -209,3 +205,47 @@ export function when_defined(v, alternativeIn) {
     return is_defined(v) ? v : alternative;
 }
 
+/**
+ * Check if the getStats API for retrieving legacy stats report is supported
+ */
+export function isLegacyStatsReportSupported(pc) {
+    return new Promise(function(resolve) {
+        pc.getStats(function() {
+            resolve(true);
+        }).catch(function() {
+            // Exception thrown if browser does not support legacy stats report
+            resolve(false);
+        });
+    });
+}
+
+/**
+ * Determine if the given value is a callable function type.
+ * Borrowed from Underscore.js.
+ */
+export function isFunction(obj) {
+    return !!(obj && obj.constructor && obj.call && obj.apply);
+}
+
+/**
+ * Asserts that a premise is true.
+ */
+export function assertTrue(premise, message) {
+    if (!premise) {
+        throw new Error(message);
+    }
+}
+
+export function isChromeBrowser(){
+    return navigator.userAgent.indexOf("Chrome") !== -1;
+}
+
+export function getChromeBrowserVersion(){
+    var userAgent = navigator.userAgent;
+    var chromeVersion = userAgent.substring(userAgent.indexOf("Chrome")+7);
+    if (chromeVersion) {
+        return parseFloat(chromeVersion);
+    } else {
+        return -1;
+    }
+}

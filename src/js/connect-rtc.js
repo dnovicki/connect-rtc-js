@@ -2,11 +2,7 @@
  * @license
  * Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
- *
- *   http://aws.amazon.com/asl/
- *
- * or in the "LICENSE" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 /**
  * @license
@@ -47,10 +43,14 @@ import 'webrtc-adapter';
  */
 import RtcSession from './rtc_session';
 import {RTC_ERRORS} from './rtc_const';
+import RtcPeerConnectionFactory from './rtc_peer_connection_factory'
+import uuid from 'uuid/v4';
 
 global.connect = global.connect || {};
 global.connect.RTCSession = RtcSession;
 global.connect.RTCErrors = RTC_ERRORS;
+global.connect.RtcPeerConnectionFactory = RtcPeerConnectionFactory;
+global.connect.uuid = uuid;
 
 global.lily = global.lily || {};
 global.lily.RTCSession = RtcSession;
