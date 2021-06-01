@@ -159,6 +159,9 @@ export class SetLocalSessionDescriptionState extends RTCSessionState {
 
         var transformedSdp = transformSdp(localDescription.sdp, sdpOptions);
         localDescription.sdp = transformedSdp.sdp;
+        localDescription.sdp += 'a=ptime:20\r\n';
+        localDescription.sdp += 'a=maxptime:20\r\n';
+        localDescription.sdp = localDescription.sdp.replace("minptime=10", "minptime=20");
 
         self.logger.info('LocalSD', self._rtcSession._localSessionDescription);
         self._rtcSession._pc.setLocalDescription(self._rtcSession._localSessionDescription).then(() => {
@@ -871,9 +874,13 @@ export default class RtcSession {
         var now = new Date();
         self._sessionReport.sessionStartTime = now;
         self._connectTimeStamp = now.getTime();
-        if (pc) {
+        if (pc && pc.signalingState != 'closed') {
             self._pc = pc;
         } else {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
             RTC_PEER_CONNECTION_CONFIG.iceServers = self._iceServers;
             self._pc = self._createPeerConnection(RTC_PEER_CONNECTION_CONFIG, RTC_PEER_CONNECTION_OPTIONAL_CONFIG);
         }
